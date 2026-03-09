@@ -3,7 +3,7 @@ name: ci-pipeline
 on:
   push:
     branches:
-      - cicd_multistage
+      - main
   pull_request:
     branches:
       - main
@@ -65,7 +65,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/html_nginx_2
+          images: ${{ secrets.DOCKER_USERNAME }}/cicd_pipeline_dockerhub
           # Adds 'latest' and the commit SHA as tags automatically
           tags: |
             type=schedule, pattern={{date 'YYYYMMDD'}}
@@ -78,7 +78,7 @@ jobs:
       - name: Print Docker metadata
         run: |
           echo "Docker metadata: ${{ steps.meta.outputs }}"
-          
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:

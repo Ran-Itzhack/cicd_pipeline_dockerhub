@@ -48,7 +48,8 @@ jobs:
     needs: [ terraform_validate_configuration ]
     runs-on: ubuntu-latest
     outputs:
-      meta_output: ${{ steps.docker_metadata.outputs }} 
+      meta_tags_output: ${{ steps.docker_metadata.outputs.tags }} 
+      meta_labels_output: ${{ steps.docker_metadata.outputs.labels}}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -69,7 +70,8 @@ jobs:
 
       - name: Print Docker metadata
         run: |
-          echo "Docker metadata: ${{ toJson(steps.docker_metadata.outputs) }}"
+          echo "Docker metadata1: ${{ toJson(steps.docker_metadata.outputs) }}"
+          echo "Docker metadata2: ${{ toJson(steps.docker_metadata) }}"
       
       # - name: Upload Docker Meta Data Artifact
       #   uses: actions/upload-artifact@v4
@@ -107,8 +109,8 @@ jobs:
           # Note: metadata-action handles the image name + tags together
           # tags: ${{ steps.meta.outputs.tags}}
           # labels: ${{ steps.meta.outputs.labels }}  
-          tags: ${{ needs.prepare_docker_environment.outputs.meta_output.outputs.tags}}
-          labels: ${{ needs.prepare_docker_environment.outputs.meta_output.outputs.labels }}  
+          tags: ${{ needs.prepare_docker_environment.outputs.meta_tags_output.outputs.tags}}
+          labels: ${{ needs.prepare_docker_environment.outputs.meta_labels_output.outputs.labels }}  
           # tags: prabhushan/test-service:${{ github.ref_name }}-${{ github.sha }}
 
       - name: Inspect

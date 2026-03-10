@@ -42,11 +42,47 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-  # Build Artifact Repository: push docker image to Docker Hub or Amazon ECR store 
-  # --- Build application and produce artifact for CD --- containerization
-  build_artifact_docker_image:
-    name: Build Artifact Image and Push to Docker Hub
+  # Preparing a Docker requirements for artifact
+  prepare_docker_environment:
+    name: Preparing a Docker requirements for artifact
     needs: [ terraform_validate_configuration ]
+    runs-on: ubuntu-latest
+    outputs:
+      meta_output: ${{ steps.docker_metadata.outputs }} 
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+     
+      - name: Extract metadata (tags, labels) for Docker
+        id: docker_metadata
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/cicd_pipeline_dockerhub
+          tags: |
+            type=schedule, pattern={{date 'YYYYMMDD'}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      - name: Print Docker metadata
+        run: |
+          echo "Docker metadata: ${{ toJson(steps.docker_metadata.outputs) }}"
+      
+      # - name: Upload Docker Meta Data Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: docker_meta_artifact
+      #     path: ${{ runner.temp }}/bake-meta.json
+      #     if-no-files-found: error
+      #     retention-days: 1
+
+  # Build Artifact Repository: Push docker image to Docker Hub or Amazon ECR store, produce artifact for CD --- containerization
+  build_artifact_docker_image:
+    needs: [ prepare_docker_environment, terraform_validate_configuration ]
+    name: Build Artifact Image and Push to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -61,23 +97,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ secrets.DOCKER_USERNAME }}/cicd_pipeline_dockerhub
-          # Adds 'latest' and the commit SHA as tags automatically
-          tags: |
-            type=schedule, pattern={{date 'YYYYMMDD'}}
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
-      - name: Print Docker metadata
-        run: |
-          echo "Docker metadata: ${{ steps.meta.outputs }}"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
@@ -86,18 +105,16 @@ jobs:
           push: true
           platforms: linux/amd64, linux/arm64
           # Note: metadata-action handles the image name + tags together
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}  
+          # tags: ${{ steps.meta.outputs.tags}}
+          # labels: ${{ steps.meta.outputs.labels }}  
+          tags: ${{ needs.prepare_docker_environment.outputs.meta_output.outputs.tags}}
+          labels: ${{ needs.prepare_docker_environment.outputs.meta_output.outputs.labels }}  
           # tags: prabhushan/test-service:${{ github.ref_name }}-${{ github.sha }}
 
+      - name: Inspect
+        run: |
+          docker image inspect ${{ secrets.DOCKER_USERNAME }}/cicd_pipeline_dockerhub:*
 
-# Upload Build Data to Artifact Repository
-      - name: Upload Build Data
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact_build_data_1
-          path: .
-          if-no-files-found: error
 
   # --- Unit / integration tests ---
   unit_tests:
@@ -116,9 +133,9 @@ jobs:
           # pytest
           # go test ./...
 
-  # --- Security scan ---
-  security-scan:
-    name: Security scan
+  # --- Security scan: Docker image vulnerability scanning  --- Docker Container Security Scanningner for vulnerabilities- 
+  scan_docker_container:
+    name: Security scanning Docker Image for vulnerabilities
     needs: [ terraform_validate_configuration, build_artifact_docker_image, unit_tests ]
     runs-on: ubuntu-latest
     steps:
@@ -129,11 +146,19 @@ jobs:
         run: |
           echo "Running security scan..."
           # Optional: add Trivy, CodeQL, or other scanners
+          
+      # - name: Scan Docker Image for vulnerabilities
+      #   uses: aquasecurity/trivy-action@master
+      #   with:
+      #     image-ref: myapp:scan
+      #     format: 'sarif'
+      #     output: 'trivy-results.sarif'
+      #     severity: 'CRITICAL,HIGH'
 
-  # --- Gate: workflow only succeeds when all jobs pass (CD runs on workflow_run success) ---
+  # --- Workflow only succeeds when all jobs pass  ---
   ci-success:
     name: CI success
     runs-on: ubuntu-latest
-    needs: [terraform_validate_configuration, build_artifact_docker_image, unit_tests, security-scan]
+    needs: [terraform_validate_configuration, build_artifact_docker_image, unit_tests, scan_docker_container]
     steps:
       - run: echo "All CI jobs completed successfully."

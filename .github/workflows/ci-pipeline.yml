@@ -99,6 +99,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/cicd_pipeline_dockerhub
+          tags: |
+            type=schedule, pattern={{date 'YYYYMMDD'}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
@@ -107,10 +120,10 @@ jobs:
           push: true
           platforms: linux/amd64, linux/arm64
           # Note: metadata-action handles the image name + tags together
-          # tags: ${{ steps.meta.outputs.tags}}
-          # labels: ${{ steps.meta.outputs.labels }}  
-          tags: ${{ needs.prepare_docker_environment.outputs.meta_tags_output.outputs.tags}}
-          labels: ${{ needs.prepare_docker_environment.outputs.meta_labels_output.outputs.labels }}  
+          tags: ${{ steps.meta.outputs.tags}}
+          labels: ${{ steps.meta.outputs.labels }}  
+          # tags: ${{ needs.prepare_docker_environment.outputs.meta_tags_output.outputs.tags}}
+          # labels: ${{ needs.prepare_docker_environment.outputs.meta_labels_output.outputs.labels }}  
           # tags: prabhushan/test-service:${{ github.ref_name }}-${{ github.sha }}
 
       - name: Inspect

@@ -51,38 +51,38 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       
-      - name: Set up Docker Build
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Build
+      #   uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub 
-        uses: docker/login-action@v4
-        with: 
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      # - name: Log in to Docker Hub 
+      #   uses: docker/login-action@v4
+      #   with: 
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
       
-      - name: Extract metadata (tags, labels) for Docker
-        id: docker_metadata
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ secrets.DOCKER_USERNAME }}/cicd_pipeline_dockerhub
-          tags: |
-            type=schedule, pattern={{date 'YYYYMMDD'}}
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
+      # - name: Extract metadata (tags, labels) for Docker
+      #   id: docker_metadata
+      #   uses: docker/metadata-action@v6
+      #   with:
+      #     images: ${{ secrets.DOCKER_USERNAME }}/cicd_pipeline_dockerhub
+      #     tags: |
+      #       type=schedule, pattern={{date 'YYYYMMDD'}}
+      #       type=ref,event=branch
+      #       type=ref,event=pr
+      #       type=semver,pattern={{version}}
+      #       type=semver,pattern={{major}}.{{minor}}
+      #       type=semver,pattern={{major}}
+      #       type=sha
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64, linux/arm64
-          # Note: metadata-action handles the image name + tags together
-          tags: ${{ steps.docker_metadata.outputs.tags}}
-          labels: ${{ steps.docker_metadata.outputs.labels }}  
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@v7
+      #   with:
+      #     context: .
+      #     push: true
+      #     platforms: linux/amd64, linux/arm64
+      #     # Note: metadata-action handles the image name + tags together
+      #     tags: ${{ steps.docker_metadata.outputs.tags}}
+      #     labels: ${{ steps.docker_metadata.outputs.labels }}  
          
 
 

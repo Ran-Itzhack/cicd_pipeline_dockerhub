@@ -6,7 +6,7 @@ Automate AWS Infra Deployment using Terraform and GitHub Actions Workflows
 - Audience (Client ID): `sts.amazonaws.com`
 - `https://aws.amazon.com/blogs/security/use-iam-roles-to-connect-github-actions-to-actions-in-aws/`
 
-```
+```bash
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -34,11 +34,11 @@ Automate AWS Infra Deployment using Terraform and GitHub Actions Workflows
 
 - Run these commands to remove the lock files that are preventing you from installing Docker
 
-sudo rm /var/lib/dpkg/lock-frontend
-sudo rm /var/lib/dpkg/lock
-sudo rm /var/lib/apt/lists/lock
+`sudo rm /var/lib/dpkg/lock-frontend`
+`sudo rm /var/lib/dpkg/lock`
+`sudo rm /var/lib/apt/lists/lock`
 
-sudo dpkg --configure -a
+`sudo dpkg --configure -a`
 
 # Install Docker (The Fast Way)
 
@@ -51,7 +51,6 @@ sudo dpkg --configure -a
 3. Add your 'ubuntu' user to the docker group 
 - (This lets you run docker commands without typing 'sudo' every time)
 `sudo usermod -aG docker $USER`
-
 
 
 

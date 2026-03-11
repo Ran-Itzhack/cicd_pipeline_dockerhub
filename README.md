@@ -55,7 +55,8 @@ Automate AWS Infra Deployment using Terraform and GitHub Actions Workflows
 
 
 # 1. Get a list of all roles starting with your prefix
-ROLES=$(aws iam list-roles --query "Roles[?starts_with(RoleName, 'ec2-ssm-role-')].RoleName" --output text)
+```bash
+ROLES=$(aws iam list-roles --query "Roles[?starts_with(RoleName, 'ec2-ssm-role-2026')].RoleName" --output text)
 
 for ROLE in $ROLES; do
     echo "--- Processing Role: $ROLE ---"
@@ -86,3 +87,4 @@ for ROLE in $ROLES; do
 done
 
 echo "--- Cleanup Complete ---"
+```

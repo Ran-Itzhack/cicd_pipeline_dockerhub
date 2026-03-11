@@ -142,7 +142,7 @@ jobs:
             IMAGE_TAG: "main"
           run: |
             set -e
-            IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}""
+            IMAGE="${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }}"
             COMMANDS_JSON=$(jq -n \
               --arg u "$DOCKERHUB_USERNAME" \
               --arg p "$DOCKER_PASSWORD" \

@@ -35,7 +35,7 @@ jobs:
 
       # - name: Download artifact (from triggering CI run)
       #   if: github.event_name == 'workflow_run'
-      #   uses: actions/download-artifact@v4
+      #   uses: actions/download-artifact@v6
       #   with:
       #     name: artifact_build_data_1
       #     run-id: ${{ github.event.workflow_run.id }}
@@ -82,7 +82,7 @@ jobs:
             }' >> ec2_instance.json
 
       - name: Upload AWS EC2 Instance JSON Data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ec2_instance.json
           path: .
@@ -100,7 +100,7 @@ jobs:
       #   run: terraform destroy -auto-approve
       
       # - name: Upload Build Data
-      #   uses: actions/upload-artifact@v4
+      #   uses: actions/upload-artifact@v6
       #   with:
       #     name: build_data
       #     path: .
